@@ -1,0 +1,17 @@
+[package]
+name = "brctl"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vinicios Lugli <vinicioslugli@gmail.com>"]
+description = "A wrapper for brctl(ethernet bridge administration)"
+license = "GPL-3.0"
+repository = "https://github.com/ViniciosLugli/brctl-rs"
+readme = "README.md"
+keywords = ["brctl", "bridge", "ethernet", "network"]
+categories = ["networking"]
+
+[dependencies]
+log = "0.4.22"
+env_logger = "0.11.5"
+regex = "1.10.6"
+lazy-regex = "3.3.0"
