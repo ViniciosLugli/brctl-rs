@@ -3,7 +3,15 @@ use brctl::{BridgeController, CommandError};
 fn main() -> Result<(), CommandError> {
 	env_logger::init();
 
-	BridgeController::check_dependencies()?;
+	match BridgeController::check() {
+		Ok((brctl_version, interfaces)) => {
+			println!("brctl version: {}", brctl_version);
+			println!("Interfaces: {:?}", interfaces);
+
+			println!("The system is ready for bridge operations!")
+		}
+		Err(e) => eprintln!("The system is not ready for bridge operations: {}", e),
+	}
 
 	println!();
 

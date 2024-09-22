@@ -5,27 +5,41 @@ use log::{debug, info};
 pub struct BridgeController;
 
 impl BridgeController {
-	pub fn check_dependencies() -> Result<(), CommandError> {
+	pub fn check() -> Result<(String, Vec<String>), Box<dyn std::error::Error>> {
+		if !cfg!(target_os = "linux") {
+			debug!("Only Linux is supported!, current OS: {}", std::env::consts::OS);
+			return Err("Only Linux is supported!".into());
+		} else {
+			debug!("Current OS: {}", std::env::consts::OS);
+		}
+
 		info!("Checking dependencies for brctl and ip...");
-		let brctl_version = CommandExecutor::run_command(vec!["brctl", "--version"])?;
-		let ip_link = CommandExecutor::run_command(vec!["ip", "link"])?;
 
-		debug!(
-			"brctl version: {}",
-			String::from_utf8_lossy(&brctl_version.stdout).trim().split_whitespace().last().unwrap()
-		);
-		debug!(
-			"ip link:\n{}",
-			String::from_utf8_lossy(&ip_link.stdout)
-				.trim()
-				.lines()
-				.map(|line| format!("  {}", line))
-				.collect::<Vec<String>>()
-				.join("\n")
-		);
+		let brctl_version_output = CommandExecutor::run_command(vec!["brctl", "--version"])?;
+		let brctl_version = String::from_utf8_lossy(&brctl_version_output.stdout);
 
-		info!("Dependencies are satisfied.");
-		Ok(())
+		let version = if let Some((_, version)) = regex_captures!(r"bridge-utils, (\d+\.\d+)", &brctl_version) {
+			version.to_string()
+		} else {
+			return Err("Failed to parse brctl version".into());
+		};
+
+		let ip_link_output = CommandExecutor::run_command(vec!["ip", "link"])?;
+		let ip_link = String::from_utf8_lossy(&ip_link_output.stdout);
+
+		let mut interfaces = Vec::new();
+		for line in ip_link.lines() {
+			if let Some((_, interface_name)) = regex_captures!(r"^\d+: ([^:]+):", line) {
+				interfaces.push(interface_name.to_string());
+			}
+		}
+
+		debug!("brctl version: {}", version);
+		debug!("Interfaces: {:?}", interfaces);
+
+		info!("Dependencies are satisfied! brctl and ip are available");
+
+		Ok((version, interfaces))
 	}
 
 	pub fn create_bridge(name: &str) -> Result<Bridge, CommandError> {
