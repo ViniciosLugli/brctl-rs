@@ -8,7 +8,13 @@ license = "GPL-3.0"
 repository = "https://github.com/ViniciosLugli/brctl-rs"
 readme = "README.md"
 keywords = ["brctl", "bridge", "ethernet", "network"]
-categories = ["networking"]
+categories = [
+	"api-bindings",
+	"command-line-interface",
+	"network-programming",
+	"os::linux-apis",
+	"development-tools::debugging",
+]
 
 [dependencies]
 log = "0.4.22"
